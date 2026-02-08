@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Paciente {
+  id              String   @id @default(cuid())
+  nombreCompleto  String
+  tipoDocumento   String   // CC, CE, PP, TI
+  numeroDocumento String   @unique
+  fechaNacimiento DateTime
+  sexo            String   // F, M
+  telefono        String
+  eps             String
+  direccion       String
+  email           String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  citas           Cita[]
+}
+
+model Cita {
+  id          String   @id @default(cuid())
+  servicio    String   // mamografia, densitometria
+  fecha       DateTime
+  hora        String
+  estado      String   @default("confirmada") // pendiente, confirmada, cancelada, completada
+  canalOrigen String   // whatsapp, llamada
+  pacienteId  String
+  paciente    Paciente @relation(fields: [pacienteId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([fecha])
+  @@index([pacienteId])
+}
+
+model Conversacion {
+  id            String   @id @default(cuid())
+  telefonoFrom  String
+  estado        String   @default("inicio") // inicio, servicio, fecha, datos_*, confirmacion
+  servicio      String?
+  fechaCita     DateTime?
+  horaCita      String?
+  datosTemp     Json?    // Datos parciales del paciente
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([telefonoFrom])
+}
